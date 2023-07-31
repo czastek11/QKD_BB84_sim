@@ -9,7 +9,7 @@
 #include <math.h>
 using namespace std;
 
-void GenerateFromQTlist(int* bits, int size, bool* QTlist, int QTlistsize) //generacja losowej tablicy bitów z ząładowanej tablicy bitów
+void GenerateFromQTlist(int* bits, int size, bool* QTlist, int QTlistsize) //generation of a random array of bits from the loaded array of bits
 {
     int start = rand3(0, QTlistsize-1-size);
     //while (start + size-1 > QTlistsize)
@@ -20,10 +20,10 @@ void GenerateFromQTlist(int* bits, int size, bool* QTlist, int QTlistsize) //gen
     }
 }
 
-bool* load_QTlist(int& give_size)
+bool* load_QTlist(int& give_size)//function froam loading all bits from random list (which is trurly random as they were genereted with real quantum number generator)
 {
     int id;
-    id = rand3(0,10); //losowanie pliku
+    id = rand3(0,10); //drawing file
     string filename;
     if (id == 0)
     {
@@ -35,7 +35,7 @@ bool* load_QTlist(int& give_size)
     }
     // cout << filename << endl;
     ifstream kwantowy_ciag;
-    kwantowy_ciag.open(filename, ios::binary); //robimy w binarnym wiec musi byc w ten sposob
+    kwantowy_ciag.open(filename, ios::binary); //converting bytes read from file into bool representation of bits
     if (kwantowy_ciag.good())
     {
         //Get the size of the file in bytes
@@ -67,7 +67,7 @@ bool* load_QTlist(int& give_size)
     return NULL;
 }
 
-// Funkcja symuluj¹ca b³êdy detektora
+// function that simulates detector's error
 double symulujBledy(int tablica[], int n, double prawdopodobienstwo)
 {
     int ile_bledow=0;
@@ -76,18 +76,18 @@ double symulujBledy(int tablica[], int n, double prawdopodobienstwo)
     {
         for (int i = 0; i < n; i++)
         {
-            x=rand1();
+            x=rand1();//using rng function to simualte error - chaning bits with certain probability
             if (x <= prawdopodobienstwo)
             {
-                tablica[i] = (tablica[i] + 1) % 2;
-                ile_bledow++;
+                tablica[i] = (tablica[i] + 1) % 2;//fliping bit
+                ile_bledow++;//counting errors
             }
         }
     }
     return ile_bledow;
 }
 
-int State_error(int* table_base,int * table_state, int size, double rate) //blad zrodla i kanalu
+int State_error(int* table_base,int * table_state, int size, double rate) //function that simulates source and channel error
 {
     int ile_bledow=0;
     if (rate != 0)
@@ -98,8 +98,8 @@ int State_error(int* table_base,int * table_state, int size, double rate) //blad
             r = rand1();
             if (r <= rate)
             {
-                table_base[i] = (table_base[i] + 1) % 2;
-                table_state[i] = rand3(0, 1);
+                table_base[i] = (table_base[i] + 1) % 2;//this changes with rate,hovewer because here error can change hole state, when chaning base the state is flipped randomly
+                table_state[i] = rand3(0, 1);//because the state in BB84 is ideally simetrical - psi=1/sqrt(2)*(|0>+|1>)
                 ile_bledow++;
             }
         }
@@ -107,25 +107,26 @@ int State_error(int* table_base,int * table_state, int size, double rate) //blad
     return ile_bledow;
 }
 
+//making quantum measurment with given set of bases. A1 - bases in which state was emmited and E1 - bases chosen for measurment
 int odczyt(int tablica_E1[],int tablica_E2[],int tablica_A1[],int tablica_A2[],int n)
 {
     int k=0;
-    for (int i = 0; i < n; ++i) // Tworzenie tablicy wyników pomiarów w bazach z tablicy_E1
+    for (int i = 0; i < n; ++i) // Creating a table of measurement results in databases from table_E1
     {
         if (tablica_E1[i] == tablica_A1[i] )
         {
-            tablica_E2[i] = tablica_A2[i]; // Jeśli baza pomiaru jest taka sama jak baza Alicji, wynik jest bez zmian
+            tablica_E2[i] = tablica_A2[i]; // If the measurement base is the same as Alice's base, the result is unchanged
             k++;
         }
         else
         {
-            tablica_E2[i] = rand3(0,1); // Jeśli baza pomiaru jest przeciwna do bazy w tablicy_B1, wynik jest losowy
+            tablica_E2[i] = rand3(0,1); // If the measurement base is opposite to the base in tablica_A1, the result is random
         }
     }
     return k;
 }
 
-void kopiuj(int tablica1[], int tablica2[], int n)
+void kopiuj(int tablica1[], int tablica2[], int n)//simplce function to copy arrays
 {
     for (int i = 0; i < n; i++)
     {
@@ -133,7 +134,7 @@ void kopiuj(int tablica1[], int tablica2[], int n)
     }
 }
 
-void printArray(int *arr, int size)
+void printArray(int *arr, int size)//simple function to print array
 {
     for (int i = 0; i < size; i++)
     {
@@ -145,72 +146,73 @@ void printArray(int *arr, int size)
 int main()
 {
     srand (time(NULL));
-    int n = 5000; //liczba bitów w kluczu
-    int m;          //dlugosc ciagu w pliku
+    int n = 5000; //the number of bits in the key
+    int m;          //the length of the string in the file
     bool* test = load_QTlist(m);
     double srednia1=0,srednia2=0,srednia3=0,srednia4=0,srednia5=0,srednia6=0,srednia7=0,srednia8=0;
-    const double alpha1 = 0.05; //blad zrodla dla Alicji
-    const double alpha2 = 0.05; //blad kanalu kwantowego dla Alicji
-    const double alpha3 = 0.05; //blad kanalu kwantowego dla Ewy
-    const double alpha4 = 0.05; //blad detektora dla Boba
+    const double alpha1 = 0.05; //source error for Alice
+    const double alpha2 = 0.05; //chanel error for Alice
+    const double alpha3 = 0.05; //chanel error for Eve 
+    const double alpha4 = 0.05; //detector error for Bob
 
     double ile_bledow1=0, ile_bledow2=0, ile_bledow3=0, ile_bledow4=0, ile_zna=0;
     int key_errors, key_errors_noE;
 
-    int* tablica_A1= new int[n]; // tablica z losowymi bazami Alicji
-    int* tablica_A2= new int[n]; // tablica z losowymi bitami Alicji
-    int* tablica_A12= new int[n]; //tablica z bazami z bledem zrodla i kanalu
-    int* tablica_A21= new int[n]; // tablica z bitami z uwzględnionymi bledu zrodla i kanalu
-    int* tablica_A12c= new int[n]; //kopia tablicy z bazami z bledem
-    int* tablica_A21c= new int[n]; //kopia tablica z bitami z bledu zrodla
-    int* tablica_B1= new int[n]; //tablica z loswymi bazami pomiarowych Boba
-    int* tablica_B2= new int[n]; //tablica z odczytanymi stanami pomiarowymi Boba
-    int* tablica_E1= new int[n]; //tablica baz Ewy do odczytu
-    int* tablica_E2= new int[n]; //tablica wyników pomiarów w bazach z tablicy_E1 - dla jednakowej bazy z bazą Alicji stan bez zmian; dla przeciwnej bazy idealne losowanie 50%/50%
-    int* tablica_E3= new int[n]; //tablica baz do nadania do boba; wypełniana na podstawie wybranej strategii
-    int* tablica_E4= new int[n]; //tablica stanów do nadania do boba; wypełniana na podstawie wybranej strategii
+    int* tablica_A1= new int[n]; // Alice's table with random bits - bases
+    int* tablica_A2= new int[n]; // Alice's table with random bits - states
+    int* tablica_A12= new int[n]; //table with bases after channel error
+    int* tablica_A21= new int[n]; // table with states after channel error
+    int* tablica_A12c= new int[n]; //copy of table with bases after chanel error
+    int* tablica_A21c= new int[n]; //copy of table with states after chanel error
+    int* tablica_B1= new int[n]; //Bob's table with random bits - measurment bases
+    int* tablica_B2= new int[n]; //Bob's table with measured states
+    int* tablica_E1= new int[n]; //Eve's table with  bits - measurment bases
+    int* tablica_E2= new int[n]; //able of measurement results in databases from table_E1 - for the same database as Alice's database,
+                                 //the status is unchanged; for opposite base perfect draw 50%/50%
+    int* tablica_E3= new int[n]; //table of bases to be sent to bob; populated based on the selected strategy
+    int* tablica_E4= new int[n]; //state table to be given to bob; populated based on the selected strategy
     int* tablica_noE= new int[n];
-    vector<int> key1A;
-    vector<int> key1B;
+    vector<int> key1A;//vecotr with generetaed key on Alice side
+    vector<int> key1B;//vecotr with generetaed key on Bob side
 
-    cout<<"Wybierz scenariusz:"<<endl<<"bez Ewy-1  z Ewa-2"<<endl;
+    cout<<"Select a scenario:"<<endl<<"without Eve-1 , with Eve-2"<<endl; //user chooeses if to simulate Eve-an eavesdropper
     int x;
     cin>>x;
     char w;
     if(x==2)
     {
-        cout << "Wybierz strategie Ewy: " << endl << " a ) wysyla baze pionowa i same 1 " << endl << " b ) wysyla losowa baze i losowe bity " << endl;
-        cout<< " c ) wysyla bazy wylosowane do pomiaru i bity takie same co zmierzyla" << endl;
-        cout << " d ) wysyla bazy wylosowane do pomiaru i bity z dyskret. sin^2(x) " << endl;
+        cout << "Choose Eve's strategy: " << endl << " a ) sends vertical base and only 1 states " << endl << " b ) sends random bases and random states " << endl;
+        cout<< " c ) sends chosen bases and measured states" << endl;
+        cout << " d ) sends random base and bits from discretization of sin^2(x) " << endl;//user chooses Eve's strategy - what to send after measurment
         cin>>w;
-        cout<<"QBER    "<<"QBER   "<<" QBER     "<<"QBER     "<<"%bledow "<<" % inf Ewy"<<"  # bledow wpr."<<endl;
-        cout<<"zrodla: "<<"kanalu: "<<"detekt1: "<<"detekt2: "<<"klucza:"<<"  o kluczu: "<<" przez Ewe:"<<endl;
+        cout<<"QBER    "<<"QBER   "<<" QBER     "<<"QBER     "<<"%errors "<<" % Eve's inf"<<"  # errors intr."<<endl;
+        cout<<"source's: "<<"channel's: "<<"dector1's: "<<"detector2's: "<<"key's:"<<"  about key: "<<" by Eve:"<<endl;
     }
     if(x==1)
     {
         cout<<"QBER    "<<"QBER   "<<" QBER    "<<"% bledow"<<endl;
-        cout<<"zrodla: "<<"kanalu: "<<"detekt: "<<"klucza:"<<endl;
+        cout<<"source's: "<<"channel's: "<<"dector's: "<<"key's:"<<endl;
     }
 
 
     int sim_time=2000;
     for(int j=0; j<sim_time; j++)
     {
-        GenerateFromQTlist(tablica_A1, n,test, m); // generowanie losowych baz Alicji
-        GenerateFromQTlist(tablica_A2, n,test, m); // generowanie losowych bitów Alicji
+        GenerateFromQTlist(tablica_A1, n,test, m); // generating random Alice bases
+        GenerateFromQTlist(tablica_A2, n,test, m); // generating random Alice bits
         kopiuj(tablica_A21,tablica_A2,n);
         kopiuj(tablica_A12,tablica_A1,n);
-        ile_bledow1=State_error(tablica_A12, tablica_A21, n, alpha1);   //dodanie bledu zrodla
-        ile_bledow2=State_error(tablica_A12, tablica_A21, n, alpha2);   //dodanie bledu kanalu
+        ile_bledow1=State_error(tablica_A12, tablica_A21, n, alpha1);   //adding source error
+        ile_bledow2=State_error(tablica_A12, tablica_A21, n, alpha2);   //adding channel error
 
         if(x==2)
         {
-            kopiuj(tablica_A12c,tablica_A12,n); //  kopia baz
-            kopiuj(tablica_A21c,tablica_A21,n); //kopia  bitow
-            GenerateFromQTlist(tablica_E1, n,test, m); //wybor losowy bazy pomiarowej Ewy do odczytu
-            ile_zna=odczyt(tablica_E1,tablica_E2,tablica_A12,tablica_A21,n);
+            kopiuj(tablica_A12c,tablica_A12,n); //  copy of bases
+            kopiuj(tablica_A21c,tablica_A21,n); //copy of bits
+            GenerateFromQTlist(tablica_E1, n,test, m); //choosing random bases for Eve's measurment
+            ile_zna=odczyt(tablica_E1,tablica_E2,tablica_A12,tablica_A21,n); // counting how many bits Eve knows
 
-            if (w == 'a')//bazy E3 i stany E4 wysylane przez Ewe -rozne strategie
+            if (w == 'a')//diffrent strategies for what Eve is sending
             {
                 for (int i = 0; i < n; ++i)
                 {
@@ -248,10 +250,11 @@ int main()
             ile_bledow3=State_error(tablica_A12, tablica_A21, n, alpha2);
         }
 
-        GenerateFromQTlist(tablica_B1,n,test,m);            // generowanie losowych baz Boba
+        GenerateFromQTlist(tablica_B1,n,test,m);            // generating random bases for Bob
         odczyt(tablica_B1,tablica_B2,tablica_A12,tablica_A21,n);
-        ile_bledow4=symulujBledy(tablica_B2, n, alpha4);     // Symulacja bledów w detektorach na odebranych bitach Boba B2
+        ile_bledow4=symulujBledy(tablica_B2, n, alpha4);     // Simulating dector error for Bob
 
+        //next we compile keys as per BB84 protocol and then make statistic of errors and keys
         key_errors=0;
         key1A.clear();
         key1B.clear();
@@ -309,9 +312,9 @@ int main()
         }
     }
     cout<<endl;
-    cout<<"Srednie:"<<endl<<endl<<"QBER bledow zrodla:         "<<srednia1/sim_time<<endl<<"QBER bledow kanalu:         "<<srednia2/sim_time<<endl;
-    cout<<"QBER bledow detektora1:     "<<srednia3/sim_time<<endl<<"QBER bledow detektora2:     "<<srednia4/sim_time<<endl;
-    cout<<"% bledow klucza:                       "<<srednia5/sim_time<<endl<<"% posiadanej inf o kluczu przez Ewe:   "<<srednia6/sim_time<<endl;
-    cout<<"% bledow wprowadzonych przez Ewe:      "<<srednia7/sim_time<<endl; 
-    cout << "calkowtity QBER:" << srednia8 / sim_time << endl;
+    cout<<"mean:"<<endl<<endl<<"QBER source's error:         "<<srednia1/sim_time<<endl<<"QBER channel's error:         "<<srednia2/sim_time<<endl;
+    cout<<"QBER detector1's error:     "<<srednia3/sim_time<<endl<<"QBER detector2's error:     "<<srednia4/sim_time<<endl;
+    cout<<"% key error:                       "<<srednia5/sim_time<<endl<<"% of information Eve knows:   "<<srednia6/sim_time<<endl;
+    cout<<"% errors introduced by Eve:      "<<srednia7/sim_time<<endl; 
+    cout << "total QBER:" << srednia8 / sim_time << endl;
 }
